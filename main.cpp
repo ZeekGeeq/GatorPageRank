@@ -9,6 +9,7 @@ private:
     unordered_map<string, int> ODeg;
     unordered_map<string, vector<string>> IDeg;
     map<string, double> PageRank;
+    int item;
 
     int get_in_deg(){
         return IDeg.size();
