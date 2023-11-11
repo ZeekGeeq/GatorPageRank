@@ -1,7 +1,6 @@
 #include <iostream>
 #include <map>
 #include<iomanip>
-#include <unordered_map>
 #include <vector>
 using namespace std;
 class AdjList{
@@ -11,10 +10,13 @@ private:
     //indegree can be kept track of by taking the size of the value
 
     map<string,vector<string>> AdjacencyList;
-    //in and out degree respectively for rank calculations
-    unordered_map<string, pair<int,int>> AdjDegrees;
-    //for storing Page Rank for later interations
+
+    //out degree for rank calculations
+    map<string, double> AdjDegrees;
+
+    //for storing Page Rank for final calculations
     map<string, double> PageRank;
+
     int getNumVertices(){
         return AdjacencyList.size();
     };
@@ -26,28 +28,70 @@ private:
         }
         return false;
     }
+    double CalculatePageRank(int powerIterations){
+        for(int i =0; i < powerIterations; i++){
+
+        }
+    }
 public:
-    AdjList(){}
+    AdjList()=default;
     void insertEdge(string &from, string &to){
         //assume no parallel edges
-        if(AdjacencyList.find(to) == AdjacencyList.end()){
+        if(AdjacencyList.find(to) == AdjacencyList.end() || AdjDegrees.find(to) == AdjDegrees.end()){
             //initialize and define values to be zero
-            AdjacencyList[to].emplace_back(from);
-            AdjDegrees[to].first = 1;
-            AdjDegrees[to].second = 0;
+            AdjacencyList[to].push_back(from);
+            AdjDegrees[to] = 0.0;
         }
         else{
-            AdjacencyList[to].emplace_back(from);
-            AdjDegrees[to].first ++;
+            AdjacencyList[to].push_back(from);
         }
         //found first instance of website
-        if(AdjacencyList.find(from) == AdjacencyList.end()){
-            AdjacencyList[from];
-            AdjDegrees[from].first = 0;
-            AdjDegrees[from].second = 1;
+        if(AdjacencyList.find(from) == AdjacencyList.end() || AdjDegrees.find(from) == AdjDegrees.end()){
+            AdjDegrees[from] = 1.0;
         }
         else{
-            AdjDegrees[from].second ++;
+            AdjDegrees[from] += 1.0;
+        }
+    }
+    //only called with all inputs are recevied
+    void createFirstRanks(){
+        for(auto i: AdjacencyList){
+            PageRank[i.first] = 1.0f/(double)getNumVertices();
+        }
+    }
+    void CalculatePageRanks(int power_iterations){
+        createFirstRanks();
+        if(power_iterations == 1){return;}
+        int num_vert = getNumVertices();
+        double matrix[num_vert][num_vert] ;
+        map<string,double> temp;
+//        fill the matrix with the right values
+        for(int i =0; i < getNumVertices(); i++){
+            for(int j = 0; i < getNumVertices(); j++){
+                for(auto h : AdjDegrees){
+                    if(h.second == 0.0){
+                    }
+                    else{
+                        matrix[i][j] = 1/h.second;
+                    }
+                }
+            }
+        }
+        //this operation will run as many times as there are power iterations
+        for(int k =1; k<power_iterations; k++){
+            for(auto n: PageRank){
+                double sum = 0;
+                double product;
+                for(int l = 0; l<getNumVertices(); l++){
+                    for(int m = 0; m < getNumVertices(); m++){
+                        for(auto o: PageRank){
+                            product = matrix[l][m] * o.second;
+                            sum += product;
+                        }
+                    }
+                }
+                temp[n.first] = sum;
+            }
         }
     }
 };
@@ -57,8 +101,8 @@ int main() {
     string z = "zeek";
     string l = "lorenz";
     string corey = "flores";
-    string rob = "Roberto:)";
-    string mari = "Mariangel";
+    string rob = "roberto:)";
+    string mari = "mariangel";
     my_ADJ.insertEdge(dal, z);
     my_ADJ.insertEdge(corey,l);
     my_ADJ.insertEdge(z,corey);
@@ -66,5 +110,6 @@ int main() {
     my_ADJ.insertEdge(dal,corey);
     my_ADJ.insertEdge(z,mari);
     my_ADJ.insertEdge(z,rob);
+    my_ADJ.CalculatePageRanks(1);
     return 0;
 }
